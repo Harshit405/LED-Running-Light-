@@ -1,0 +1,39 @@
+// LED Blink for DE2-115 Board
+// Simple blinking LED using clock enable
+module led_blink (
+    input wire CLOCK_50,        // 50MHz clock on DE2-115
+    input wire [3:0] KEY,       // Push buttons (active low)
+    output reg [17:0] LEDR      // Red LEDs
+);
+
+    // Counter for clock division
+    // 50MHz: 50,000,000 cycles = 1 second
+    reg [25:0] counter;
+    wire reset_n;
+    
+    // KEY[0] is reset (active low on DE2-115)
+    assign reset_n = KEY[0];
+    
+    // Main logic
+    always @(posedge CLOCK_50 or negedge reset_n) begin
+        if (!reset_n) begin
+            // Reset condition
+            counter <= 26'd0;
+            LEDR[0] <= 1'b0;
+        end
+        else begin
+            // Increment counter
+            counter <= counter + 1'b1;
+            
+            // When counter reaches 50 million (1 second)
+            if (counter == 26'd49_999_999) begin
+                counter <= 26'd0;       // Reset counter
+                LEDR[0] <= ~LEDR[0];    // Toggle LED
+            end
+        end
+    end
+    
+    // Turn off other LEDs
+    assign LEDR[17:1] = 17'b0;
+
+endmodule
